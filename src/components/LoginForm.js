@@ -1,24 +1,48 @@
 import React, { Component } from 'react';
 import { Text } from 'react-native';
 import firebase from 'firebase';
-import { Buttons, Card, CardSection, Input } from './common'; 
+import { Buttons, Card, CardSection, Input, Spinner } from './common'; 
 
 class LoginForm extends Component{
-    state = { email: '', password: '', error: ''};
+    state = { email: '', password: '', error: '', loading: false};
 
     onButtonPress(){
         const { email, password } = this.state;
 
-        this.setState({ error: '' }); 
+        this.setState({ error: '', loading: true }); 
 
-        firebase.auth().signInWithEmailAndPassword( email, password)
+        firebase.auth().signInWithEmailAndPassword(email, password)
+            .then(this.onLoginSuccess.bind(this))
             .catch(() =>{
                 firebase.auth().createUserWithEmailAndPassword( email, password)
-                    .catch(()=>{
-                        this.setState({error: 'Authentication Failed.'})
-
-                    })
+                    .then(this.onLoginSuccess.bind(this))
+                    .catch(this.onLoginFail.bind(this));
             }); 
+    }
+
+    onLoginFail(){
+        this.setState({error: 'Authentication Failed.', loading: false})
+    }
+
+    onLoginSuccess(){
+        this.setState({
+            email: '',
+            password: '',
+            loading: false,
+            error: ''
+        });
+    }
+
+    renderButton(){
+        if (this.state.loading){
+            return <Spinner size = "small"/>
+        }
+
+        return(
+            <Buttons pressIt = {this.onButtonPress.bind(this)}>
+                Login
+            </Buttons>
+        );
     }
 
     render() {
@@ -49,9 +73,7 @@ class LoginForm extends Component{
                 </Text>
 
                 <CardSection>
-                    <Buttons pressIt = {this.onButtonPress.bind(this)}>
-                        Login
-                    </Buttons>
+                   {this.renderButton()}
                 </CardSection>
             </Card>
         )
@@ -69,3 +91,5 @@ const styles = {
 export default LoginForm; 
 
 //promises: .catch >> if login fails, call a function that will allow user to create an account
+//render methods that returns some amt of jsx and call it
+//clean up code when it becomes heavy
