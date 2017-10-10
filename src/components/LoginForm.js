@@ -74,7 +74,7 @@ class LoginForm extends Component{
 
                 <CardSection>
                    {this.renderButton()}
-                </CardSection>
+                </CardSection> 
             </Card>
         )
     }
